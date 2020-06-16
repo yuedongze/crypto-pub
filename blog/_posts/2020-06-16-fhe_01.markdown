@@ -4,11 +4,11 @@ title:  "Fully Homomorphic Encryption Part One: A Gentle Intro"
 ---
 ## Preface
 
-Recently I have taken [**CS355 (Topics in Cryptography)**](cs355.stanford.edu) at Stanford. This was a comprehensive course on advanced Crypto topics.
+Recently I have taken [**CS355 (Topics in Cryptography)**](https://cs355.stanford.edu) at Stanford. This was a comprehensive course on advanced crypto topics.
 
-Throughout the 3-month course, the instructors covered various topics that spans the history of Cryptography, starting from One-way Functions, PRFs all the way to applied crypto systems such as MPC, Zero-Knowledge, and PIR. This was really a great course to take, and I've surely learned a lot about modern crypto systems.
+Throughout the 3-month course, the instructors covered various topics that span the history of Cryptography, starting from One-way Functions, PRFs all the way to applied cryptosystems such as **MPC, Zero-Knowledge, and PIR**. This was really a great course to take, and I've surely learned a lot about modern cryptosystems.
 
-In order to strengthen my understanding of these topics, I've decided to start a series of blog post that (gently) introduces these seemingly advanced crypto topics. I'll be summarizing lecture notes and paraphrase them into my own words. Hopefully, it should be an interesting (and not obscure) read that helps you understand these topics as well.
+In order to strengthen my understanding of these topics, I've decided to start a series of blog posts that (gently) introduces these cool crypto topics. I'll be summarizing lecture notes and paraphrase them into my own words. Hopefully, it should be an interesting (and not obscure) read that helps you understand these topics as well.
 
 For the first series of posts, I want to talk about **Fully Homomorphic Encryption (FHE)**, a fairly hot topic in the security industry. 
 
@@ -30,7 +30,7 @@ The definition is exactly right - Homomorphic Encryption is simply the encryptio
 
 ### An Overview of Encryption Schemes
 
-If you are familiar with crypto/security materials, you might know a few common encryption schemes such as AES and RSA. Although there's a difference between symmetric and asymmetric encryption schemes, but every scheme could be generalized in the following form.
+If you are familiar with crypto/security materials, you might know a few common encryption schemes such as AES and RSA. Although there's a difference between symmetric and asymmetric encryption schemes, every scheme could be generalized in the following form.
 
 {% mermaid %}
 graph LR;
@@ -57,7 +57,7 @@ In Cryptography, we tend to always write about **properties** of a system after 
 First, an encryption needs to have **Correctness**. This means that applying decryption on a ciphertext that was the result of applying encryption on some plaintext $$pt$$, using the keys derived from $$KeyGen$$, will always guarantee to result in the same plaintext $$pt$$ as before. To capture this relation in the language of probability, we use the following expression:
 
 $$
-\forall pt \in PT, (k_{enc}, k_{dec}) \leftarrow KenGen(1^\lambda):\\
+\forall pt \in PT, (k_{enc}, k_{dec}) \leftarrow KeyGen(1^\lambda):\\
 Pr[Decryption(k_{dec}, Encryption(k_{enc}, pt)) = pt] = 1
 $$
 
@@ -145,7 +145,7 @@ However, the fact that this category is called "leveled" is because it introduce
 
 A good way to understand a leveled scheme is to think about that the HE addition and multiplication operations inevitably **introduces some "noise" into the ciphertext**. The noise level increases as the functionality $$F$$'s boolean circuit goes deeper. When $$F$$'s complexity approaches $$L$$, eventually the **noise blows up and destroys the obsersable state** of the ciphertext and we can no longer recover the original plaintext from the ciphertext anymore.
 
-#### Fully Homorphic Encryption
+#### Fully Homomorphic Encryption
 
 Finally, we arrived at our ultimate goal and the last category - **FHE**. In a FHE scheme, we can do arbitrary computation to the plaintexts by manipulating the ciphertexts. There's no complexity requirements on the functionality $$F$$. Also, a FHE scheme will always **gate the ciphertext noise at a manageable threshold** so it doesn't blow up and destroy its observable state.
 
@@ -183,23 +183,23 @@ Now you should get the idea - if we don't restrict the output size of the $$Eval
 
 Before we proceed further into the theoretical land, I'd say let's review the brief history of FHE together :)
 
-The concept of FHE was proposed back in the late 70s. In 1978, **Rivest, Adleman, and Dertouzous** together proposed a scheme that enables secret evaluations of plaintexts by manipulating only the ciphertext without knowing the decryption key - basically FHE! Also, this was **only two years after Diffie-Hellman public key exchange** was proposed in 1976.
+The concept of FHE was proposed back in the late 70s. In 1978, [**Rivest, Adleman, and Dertouzos**](https://people.csail.mit.edu/vinodv/6892-Fall2013/RAD78.pdf) together proposed a scheme that enables secret evaluations of plaintexts by manipulating only the ciphertext without knowing the decryption key - basically FHE! Also, this was **only two years after Diffie-Hellman public key exchange** was proposed in 1976.
 
 After this idea was proposed, the whole academia and industry started searching for the ideal candidate that has this amazing property. Unfortunately, people **couldn't find a worthy scheme** that both satisfies the FHE requirement and is unbroken by cryptanalysis attacks.
 
-It was until 2009 when **Craig Gentry** (a PhD at Stanford) made a major breakthrough on FHE. In his PhD thesis, he gave the first construction of a valid FHE scheme based on the assumption of **ideal lattices**.
+It was until 2009 when **Craig Gentry** (a PhD at Stanford) made a major breakthrough on FHE. In his [PhD thesis](https://crypto.stanford.edu/craig/), he gave the first construction of a valid FHE scheme based on the assumption of **ideal lattices**.
 
 In this thesis, he also introduced this novel idea of **bootstrapping**. With this bootstrapping trick, he was able to **turn a leveled FHE scheme into a complete FHE scheme**. The essence of this trick is to use some "black magic" to somehow **"refresh" and ameliorate the noise level** of a noisy ciphertext so the noise never blows up when computing arbitrarily-complex functionality $$F$$. We will come back to this in upcoming posts.
 
 After Gentry's discovery, the whole industry started the second round of massive search for ideal FHE candidates. 
 
-In 2011, Brakerski, Vaikuntanathan proposed a new FHE scheme - **a scheme that is based on a lattice-based crypto assumption called Learning With Errors (LWE)**. Later, Brakerski, Gentry, Vaikuntanathan concluded this work by formally proposing the **BGV FHE scheme**. This scheme is a leveled FHE scheme and is based on better lattice assumptions compared to Gentry 09'. Commonly, we refer to the BGV scheme as **the 2nd Generation FHE scheme**.
+In 2011, Brakerski, Vaikuntanathan proposed a new FHE scheme - **a scheme that is based on a lattice-based crypto assumption called Learning With Errors (LWE)**. Later, Brakerski, Gentry, Vaikuntanathan concluded this work by formally proposing the **[BGV](https://eprint.iacr.org/2011/277.pdf) FHE scheme**. This scheme is a leveled FHE scheme and is based on better lattice assumptions compared to Gentry 09'. Commonly, we refer to the BGV scheme as **the 2nd Generation FHE scheme**.
 
-Later in 2013, Gentry strikes back again! Gentry, Sahai, Waters together proposed **the 3rd Generation FHE scheme - the GSW scheme**. The GSW scheme is again based on the LWE lattice crypto assumption (but slightly better) and uses **bootstrapping** to make itself a truly FHE scheme (capable of evaluating any arbitrary-sized functionality $$F$$).
+Later in 2013, Gentry strikes back again! Gentry, Sahai, Waters together proposed **the 3rd Generation FHE scheme - the [GSW](https://eprint.iacr.org/2013/340) scheme**. The GSW scheme is again based on the LWE lattice crypto assumption (but slightly better) and uses **bootstrapping** to make itself a truly FHE scheme (capable of evaluating any arbitrary-sized functionality $$F$$).
 
-After 2013, there are a lot more follow up works in the industry to further improve the BGV and the GSW schemes to make them more practical. **IBM** worked on **the HElib project** which is an open-source FHE library that's based on the BGV scheme. Another group developed **the TFHE project** which is derived from the GSW scheme. Both projects are actively maintained and optimized for performance and practicality.
+After 2013, there are a lot more follow up works in the industry to further improve the BGV and the GSW schemes to make them more practical. **IBM** worked on **the [HElib](https://github.com/homenc/HElib) project** which is an open-source FHE library that's based on the BGV scheme. Another group developed **the [TFHE](https://tfhe.github.io/tfhe/) project** which is derived from the GSW scheme. Both projects are actively maintained and optimized for performance and practicality.
 
-There are also a few attempts to accelerate FHE schemes using hardware. Projects such as **cuFHE** aim to **speed up FHE evaluations using CUDA-based GPU**. There are also attempts to move this onto **FPGA** and **ASIC** chips to further boost its performance.
+There are also a few attempts to accelerate FHE schemes using hardware. Projects such as **[cuFHE](https://github.com/vernamlab/cuFHE)** aim to **speed up FHE evaluations using CUDA-based GPU**. There are also attempts to move this onto **FPGA** and **ASIC** chips to further boost its performance.
 
 And here we are today - **standing on top of a well-paved road that are built by avant-gardes in this field.** The major focus today is still about performance. With the state-of-the-art technologies, **we are still looking at the unit of seconds when evaluating useful functionalities on a moderately-rigged machine**.
 
@@ -241,7 +241,7 @@ However, we couldn't find additive HE properties within RSA. Therefore RSA is a 
 
 #### Cyclic Group ElGamal: Additive HE
 
-The second candidate that people tried were ElGamal encryption scheme over cyclic groups.
+The second candidate that people tried was the ElGamal encryption scheme over cyclic groups.
 
 There are a few well-known cyclic groups such as the **Integer Finite Field** and the **Elliptical Curve Group**. However, we don't need to understand these groups are actually implemented in detail. 
 
@@ -318,7 +318,7 @@ Although the FHE problem sounds kind of trivial in the presence of MPC, but ther
 
 ![](https://images.unsplash.com/photo-1548092372-0d1bd40894a3?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1650&q=80)
 
-## Up Next: the GSW FHE Scheme
+## Up Next: The GSW FHE Scheme
 
 I think we should all have a pretty solid understanding of what FHE is at this moment.
 
