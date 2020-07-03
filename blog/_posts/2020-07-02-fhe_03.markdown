@@ -2,9 +2,7 @@
 layout: post
 title:  "Fully Homomorphic Encryption Part Three: Three Strawmans for the FHE Scheme"
 ---
-# Fully Homomorphic Encryption Part Three: Three Strawmans for the FHE Scheme
-
-In my previous post, I have went over how **Lattice-based crypto** works, as well as what **Learning With Error (LWE) Problem** is. In the end, we looked at how **Regev Encryption** works by putting the LWE problem together with an encryption scheme.
+In my previous post, I went over how **Lattice-based crypto** works, as well as what **Learning With Error (LWE) Problem** is. In the end, we looked at how **Regev Encryption** works by putting the LWE problem together with an encryption scheme.
 
 Hopefully, everyone should have a pretty solid understanding about these fundamental building blocks. Now we are finally ready to battle the archnemesis - **building the actual FHE scheme**.
 
@@ -240,7 +238,7 @@ Since the error vector $$ \vec{e}_2 $$ is bounded by an upper bound $$ B $$, the
 
 **If we can somehow bound the values in $$ C $$ to be small and still make it perfectly random**, then our problem will be easily solved! Namely, we want to make the infinity norm of matrix $$ C $$ small: $$ \mid\mid C \mid\mid_\infty = small $$, which means every value in matrix $$ C $$ is small. However, we also want to maintain the randomness of matrix $$ C $$, so it's not too deterministic and destroys the security.
 
-So what's the secret sauce that's missing from here? **Binary Decompositon** to the rescue!
+So what's the secret sauce that's missing from here? **Binary Decomposition** to the rescue!
 
 #### Binary Decomposition
 
@@ -374,7 +372,7 @@ Therefore, this third construction gives us a **Leveled Fully Homomorphic Encryp
 
 Compared to the two previous posts, I must say that this one is much more hardcore and contains lots of mathematical equations and details. 
 
-Though I tried my best make this as simple as possible, it might still confuse some of you. Feel free to read through the three straw man constructions again to consolidate the knowledge of how FHE scheme is constructed from this "**approximate eigenvector**" method.
+Though I tried my best to make this as simple as possible, it might still confuse some of you. Feel free to read through the three straw man constructions again to consolidate the knowledge of how FHE scheme is constructed from this "**approximate eigenvector**" method.
 
 If you successfully made it through here and understood most of it, **congratulations**! You've just mastered how FHE works and is built from ground-up. This is really **big** - considering FHE is still a super new field that hasn't existed ~10 years ago.
 
