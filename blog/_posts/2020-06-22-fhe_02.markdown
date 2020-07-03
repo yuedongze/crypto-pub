@@ -279,3 +279,11 @@ To review, we first described what **Integer Lattices** are, and talked about th
 And now we are here. If you made it through here, we have just gone through **all the fundamental building blocks** that will get us FHE!
 
 Since this post is probably already too long, I shall conclude here. For the next post, we will take a look at how to construct **a Leveled FHE scheme with noise**.
+
+---
+
+## Credits
+
+Most content of this post were summarized from my notes for CS355. You can locate all the awesome lecture notes from CS355 [here](https://crypto.stanford.edu/cs355/20sp/schedule/).
+
+Thanks again to Dima, Florian, and Saba for teaching this amazing course!

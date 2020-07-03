@@ -386,3 +386,10 @@ The key idea to convert an LFHE scheme like GSW to true FHE is **Bootstrapping**
 
 In the next post, let's take a deep dive into how Bootstrapping works and turn our leveled GSW Scheme into an true FHE.
 
+---
+
+## Credits
+
+Most content of this post were summarized from my notes for CS355. You can locate all the awesome lecture notes from CS355 [here](https://crypto.stanford.edu/cs355/20sp/schedule/).
+
+Thanks again to Dima, Florian, and Saba for teaching this amazing course!

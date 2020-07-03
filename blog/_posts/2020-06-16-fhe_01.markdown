@@ -326,3 +326,10 @@ In this series of posts, I'll be going over the full details of **the GSW FHE sc
 
 Since this post is probably already long enough, I will stop writing here. In the next post, I'll start to go over **the fundamental concepts that help us understand how GSW works**. Namely I'll be talking about what **Learning With Errors** is and how **Lattice-based Crypto** works.
 
+---
+
+## Credits
+
+Most content of this post were summarized from my notes for CS355. You can locate all the awesome lecture notes from CS355 [here](https://crypto.stanford.edu/cs355/20sp/schedule/).
+
+Thanks again to Dima, Florian, and Saba for teaching this amazing course!
