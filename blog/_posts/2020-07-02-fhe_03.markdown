@@ -30,7 +30,7 @@ Last time, we also took a look at how **Regev Encryption** works.
 
 Upon decryption, we use the knowledge of the secret vector $$s $$ to remove the One-Time-Pad. However, since the original product with error also carries an error term, **our result is also offsetted by this error term**.
 
-![image-20200701190224977]({{site.url}}/assets/images//fhe/regev.png)
+![image-20200701190224977]({{site.url}}/assets/images/fhe/regev.png)
 
 The diagram above visualizes how the error term will affect the decrypted result.
 
@@ -42,7 +42,7 @@ Therefore, **keeping the error bound under $$ q/4 $$ will guarantee the decrypti
 
 Finally, let's review the definition of FHE once again!
 
-![image-20200701191218974]({{site.url}}/assets/images//fhe/fhe.png)
+![image-20200701191218974]({{site.url}}/assets/images/fhe/fhe.png)
 
 We can basically treat the FHE problem as if an user has some secret input $$ x $$ and would like the cloud to obliviously compute function $$ f(\cdot) $$ for him. 
 
