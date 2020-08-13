@@ -1,0 +1,88 @@
+# Lattice学习笔记08：SIS OWF的应用
+
+到这儿，和SIS有关的内容就了解的差不多了。最后一篇来讲讲SIS OWF的实际应用。
+
+### SIS的压缩属性与CRHF
+
+首先我们看SIS OWF的结构：
+$$
+\mathbf{A} \in \mathbb{Z}_q^{n \times m}, \mathbf{x} \in \{0,1\}^m, f_\mathbf{A}(\mathbf{x}) = \mathbf{Ax} \text{ mod }q
+$$
+因为Ajtai给出的安全定义——即$m > n \log{q}$，这也就是说我们原来有$m$ bits的信息量，我们等于是把它压缩到了$n$个$q$模中的数字，即$n \log{q}$个bits的信息量。这也正好符合了SIS OWF满射（surjective）的特性，输入空间比输出空间大得多。
+
+基于这一压缩的特性，我们很自然的就可以用SIS OWF来做一个Collision Resistant Hash Function。具体的CR和单向性我们之前也讨论过了。为了巩固知识，我们再来推一边。
+
+首先，SIS OWF的单向性不用多说，因为SIS是一个公认的格中难题，如果我们可以逆向计算SIS的话，那也就代表我们可以解决格中的SIVP问题。
+
+接着，我们需要证明如果SIS OWF是单向的，那么它也是Collision Resistant的。这个证明也不难，我们反过来推，如果我们可以找到SIS OWF的碰撞，那么我们就可以破解它的单向性。
+
+假如给定一个$\mathbf{A, y}$，我们想要找到一个$\mathbf{x}$使得：
+$$
+f_\mathbf{A}(\mathbf{x}) = \mathbf{y}
+$$
+那么，我们首先可以在矩阵$\mathbf{A}$的任意一个column中（假设是第$i$列，即$\mathbf{a}_i$）加上$\mathbf{y}$的值，构成$\mathbf{A}'$。注意因为$\mathbf{A}$是一个随机的矩阵，所以就算某一列加上了$\mathbf{y}$，这个矩阵仍然还是随机的。
+
+这个时候，我们可以尝试找到$f_\mathbf{A}'(\cdot)$的碰撞，即一组$\mathbf{x, x'}$：
+$$
+\mathbf{A'x = A'x'}
+$$
+得到了碰撞之后，我们检查$\mathbf{x, x'}$的第$i$位是否不同。如果$x_i' = 1， x_i = 0$，那么我们就可以得到：
+$$
+\mathbf{A}(\mathbf{x} - \mathbf{x}') = \mathbf{y}
+$$
+这里$(\mathbf{x - x'})$的值也就是前面SIS OWF的解了。具体的原理也很简单，因为如果$x_i = 0$，那么代表$\mathbf{A'x}$并不会用到我们修改过的$\mathbf{a}_i$这一列，这也就代表$\mathbf{A'x} = \mathbf{Ax}$。同理，因为$x_i'=1$，所以$\mathbf{A'x'} = \mathbf{Ax'} + \mathbf{y}$。我们把两边相减，就能得到我们原来的$\mathbf{y}$了。
+
+### SIS的输出随机分布与承诺
+
+SIS OWF不仅是单向且CR的，而且它的输出也是呈随机分布的。这一点我们可以用Leftover Hash Lemma来进行归纳。
+
+LHL指出，如果一个函数具有Pairwise Independence，并且输出空间小于输入空间（压缩），那么这个函数的输出就为随机分布。
+
+首先来看Pairwise Independence这一点，它的定义就是，如果任意固定两个输入$\mathbf{x}_1, \mathbf{x}_2$，然后我们随机选择一个SIS问题$\mathbf{A}$，如果$f_\mathbf{A}(\mathbf{x}_1), f_\mathbf{A}(\mathbf{x}_2)$这两个SIS OWF的输出分布是独立的，那么这就代表这个函数是成对独立的（Pairwise Independent）。
+
+当满足随机分布的条件之后，那么我们就可以把$f_\mathbf{A}$的输出看做一个随机分布的向量：
+$$
+f_\mathbf{A} \approx U(\mathbb{Z}_q^n)
+$$
+基于这一特性，我们就可以构建一个**承诺（Commitment）**系统。一方可以生成一段信息$m$的承诺$C$，然后把这个承诺发送给另一方。承诺的本身并不能暴露$m$的值，即需要满足hiding的属性。稍后，承诺方可以公布一段字串来“打开”这个承诺，随后另一方就可以验证这个承诺的确是从信息$m$构造而来的。一个承诺打开的方法应该只能有一种，即需要满足binding的属性。
+
+我们基于SIS OWF来尝试构建一个承诺系统：
+
+1. 首先，我们选择两个随机的SIS问题矩阵$\mathbf{A}_1, \mathbf{A}_2$。
+2. 假如我们要承诺信息$\mathbf{m} \in \{0,1\}^m$，那我们随机选择一个向量$\mathbf{r} \in \{0,1\}^m$，然后我们输出承诺$C(\mathbf{m, r}) = f_{[\mathbf{A}_1, \mathbf{A}_2]}(\mathbf{m, r}) = \mathbf{A}_1 \mathbf{m} + \mathbf{A}_2 \mathbf{r}$。
+3. 注意到这里因为$\mathbf{A}_2, \mathbf{r}$都是随机生成的，所以基于SIS OWF的随机分布特性，这等于是在我们原本的$f_{\mathbf{A}_1}(\mathbf{m})$上叠加了一层随机的One-Time Pad，所以整体承诺也是随机分布的。
+4. 同样，这个承诺也是binding的，因为如果我们能够找到一对不同的$\mathbf{m', r'}$并且可以得到同样的承诺的话，那就等于是我们找到了$f_{[\mathbf{A}_1, \mathbf{A}_2]}$的一对碰撞，这我们已经证明了是不可能的。
+
+### SIS的线性同态特性与数字签名
+
+因为SIS OWF其实就是一个线性组合的表达式，所以整个function其实是线性同态的：
+$$
+f_\mathbf{A}(\mathbf{x}_1) + f_\mathbf{A}(\mathbf{x}_2) = f_\mathbf{A}(\mathbf{x}_1 + \mathbf{x}_2)
+$$
+这里有一点不太完美的地方，即$f_\mathbf{A}$需要一个norm比较小的输入。然而如果我们把两个短向量相加，得到的并不一定是短向量。这也就是说，这里的加法运算并不是封闭的（not closed under addition）。这不影响我们的应用。
+
+SIS OWF其实还包含了另一组同态，即密钥同态：
+$$
+f_{\mathbf{A}_1}(\mathbf{x}) + f_{\mathbf{A}_2}(\mathbf{x}) = f_{\mathbf{A}_1 + \mathbf{A}_2}(\mathbf{x})
+$$
+基于第一种输入空间同态的特性，我们可以构造出一个数字签名系统。一个签名系统一般分为三个算法：
+
+1. $KeyGen \rightarrow (sk, pk)$，即密钥生成，生成用于签名和验证的私钥与公钥。
+2. $Sign(sk, m) \rightarrow \sigma$，签名算法，通过私钥创造出签名。
+3. $Verify(pk, m, \sigma) \rightarrow 1/0$，验证算法，通过公钥来验证签名是否正确。
+
+为了构建这一系统，首先需要把SIS OWF的输入空间从一个向量$\mathbf{x}$拓展成一个矩阵$\mathbf{X}$：
+$$
+\mathbf{X} = [\mathbf{x}_1, \dots, \mathbf{x}_l]\\
+f_\mathbf{A}(\mathbf{X}) = [f_\mathbf{A}(\mathbf{x}_1), \dots, f_\mathbf{A}(\mathbf{x}_l)] = \mathbf{AX} \text{ mod }q
+$$
+在密钥生成阶段，我们只需要随机生成SIS的问题矩阵$\mathbf{A}$并输出。然后我们选定一个随机的短矩阵和短向量$(\mathbf{X, x})$作为私钥，并且选定$(\mathbf{Y} = f_\mathbf{A}(\mathbf{X}), \mathbf{y} = f_\mathbf{A}(\mathbf{x}))$，即私钥在SIS OWF下运算得到的结果作为公钥。
+
+如果要签署一个消息$\mathbf{m}$的话，那么就计算$\mathbf{Xm + x}$，并且输出为签名。
+
+随后验证的过程也很简单，只需要计算：
+$$
+f_\mathbf{A}(\sigma) = f_\mathbf{A}(\mathbf{Xm + x}) = f_\mathbf{A}(\mathbf{X})\mathbf{m} + f_\mathbf{A}(\mathbf{x}) \stackrel{?}{=} \mathbf{Ym + y}
+$$
+这里SIS OWF的同态特性就很完美的帮助我们验证了这一签名的正确性。至于安全性的话，一方面单独只看到一个$\mathbf{Xm + x}$是无法推算出$\mathbf{X, x}$的值的，所以这个签名是One-Time Secure（单次安全）的啦。
+
