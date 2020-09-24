@@ -203,12 +203,10 @@ $$
 首先，我们把$$ \mathbf{y} $$的信息叠加到$$ \{C_i\} $$密文上，构成新的组合密文$$ C_y $$：
 
 $$
-
 \begin{align*}
 C_y &= \sum_i y_i C_i\\
-&= (\sum_i y_i \mathbf{A}_i + \underbrace{\sum_i y_i x_i \mathbf{G}}_\text{0 if $$ \langle \mathbf{x, y} \rangle = 0 $$})^t \mathbf{s} + \underbrace{\sum_i y_i \cdot noise}_\text{small if $$ y_i $$ is binary} 
+&= (\sum_i y_i \mathbf{A}_i + \underbrace{\sum_i y_i x_i \mathbf{G}}_\text{0 if $ \langle \mathbf{x, y} \rangle = 0 $})^t \mathbf{s} + \underbrace{\sum_i y_i \cdot noise}_\text{small if $ y_i $ is binary} 
 \end{align*}
-
 $$
 
 如果我们展开$$ C_y $$的表达式，我们会发现其中带有$$ \mathbf{G} $$的一项，如果$$ \mathbf{x, y} $$的内积为0的话，就可以被完美的消除。这样一来，整个表达式就变成了纯粹的$$ \sum_i y_i \mathbf{A}_i $$，这也就是我们前面$$ \mathbf{e_y} $$用到的矩阵的一部分！
@@ -216,15 +214,13 @@ $$
 接下来，最后一步我们就是要正确的使用密钥$$ \mathbf{e_y} $$来解密。我们拼接$$ C' $$与$$ C_y $$，并且乘上$$ \mathbf{e_y} $$，就可以得到：
 
 $$
-
 \begin{align*}
 \mathbf{e_y}^t [C' \vert C_y] &= \mathbf{e_y}^t [\mathbf{A}^t \mathbf{s} + \mathbf{noise} \vert (\sum_i y_i \mathbf{A}_i)^t \mathbf{s} + \mathbf{noise}]\\
 &= \mathbf{e_y}^t \left([A \vert \sum_i y_i \mathbf{A}_i]^t \mathbf{s} + \mathbf{noise}\right)\\
-&= \mathbf{e_y}^t \mathbf{F_y} \mathbf{s} + \underbrace{\mathbf{e_y}^t \cdot \mathbf{noise}}_\text{small since $$ \mathbf{e} $$ is short}\\
+&= \mathbf{e_y}^t \mathbf{F_y} \mathbf{s} + \underbrace{\mathbf{e_y}^t \cdot \mathbf{noise}}_\text{small since $ \mathbf{e} $ is short}\\
 &= \mathbf{u}^t \mathbf{s} + noise\\
 &\approx \mathbf{u}^t \mathbf{s}
 \end{align*}
-
 $$
 
 得到这个结果之后，我们就可以从$$ C $$中减去这一项，就可以得到密文啦！
