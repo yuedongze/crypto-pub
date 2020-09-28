@@ -192,7 +192,7 @@ $$
 \begin{align*}
 \hat{C} \cdot \mathbf{G} \cdot \vec{s} &= C \cdot \vec{s}\\
 &= \mu \cdot \mathbf{G} \cdot \vec{s} \pm \vec{e}
-\end{align*}\
+\end{align*}
 
 $$
 

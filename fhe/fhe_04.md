@@ -184,7 +184,7 @@ $$
 \begin{align*}
 \hat{C} \cdot \mathbf{G} \cdot \vec{s} &= C \cdot \vec{s}\\
 &= \mu \cdot \mathbf{G} \cdot \vec{s} \pm \vec{e}
-\end{align*}\
+\end{align*}
 $$
 然后我们需要做的，只是看这个结果的第一项，即一个$\mathbb{Z}_q$的数字，判断这个数字距离0点的距离是否在$q/4$之内，就可以知道$\mu$的值了。
 
