@@ -1,4 +1,4 @@
-# 格密码学进阶06：ABE属性加密（BGG+13）
+# 格密码学进阶06：ABE属性加密（BGG+14）
 
 ### Lattice ABE的大致结构
 
@@ -38,7 +38,7 @@ $$
 
 
 
-### AFV11回顾
+#### AFV11回顾
 
 在上期的结尾也提到过，如果用这个视角看【AFV11】的话，其实AFV11就是实现了所有线性组合的$f$下的ABE。这也就是说，我们可以通过同态计算来得到**属性**与**约束**的内积：
 $$
@@ -48,15 +48,270 @@ $$
 
 
 
-### 【BGG+14】扩展至所有电路
+### 【BGG+14】扩展至所有functionality
 
 因为在AFV11中，解密方已知了$\mathbf{y}$向量的值，所以在进行同态计算的时候，等于只需要进行加法计算而已，并不需要乘法。
 
-熟悉FHE体系（比如GSW）的话，我们就知道乘法才是决定了FHE成败的关键之处。
+熟悉FHE体系（比如GSW）的话，就会知道如果我们想要支持所有的functionality的话，那我们需要同时支持对于密文的**加法与乘法**。我们在这里一样，虽然说属性本身是公开的，并不是密文的主体（我们的目的不在于隐藏属性），但是我们是用一种与GSW非常相似的encoding把属性嵌入进密文中的。所以说，我们也需要支持**对于属性encoding的加法与乘法**。
 
 
 
+#### 属性相加
+
+我们先来看看在之前已经实现过的属性相加。为了方便描述，我们再次定义一下问题：
+
+给定一个属性$\mathbf{x}_i$，我们使用矩阵$C_{\mathbf{x}_i}$来encode这个属性：
+$$
+C_{\mathbf{x}_i} = (\mathbf{A}_i + \mathbf{x}_i \mathbf{G})^t \mathbf{s} + \mathbf{noise}
+$$
+假如我们拥有属性$\mathbf{x}_1$的encoding $C_{\mathbf{x}_1}$，与属性$_2\mathbf{x}$的encoding $C_{\mathbf{x}_2}$，我们能否结合这两个encoding，并且获得$\mathbf{x}_1 + \mathbf{x}_2$的encoding呢？
+
+这个问题的答案非常的trivial，我们只需要相加即可：
+$$
+\begin{align*}
+C_{\mathbf{x}_1} + C_{\mathbf{x}_2} &= (\mathbf{A}_1 + \mathbf{x}_1 \mathbf{G})^t \mathbf{s} + (\mathbf{A}_2 + \mathbf{x}_2 \mathbf{G})^t \mathbf{s} + \mathbf{noise}'\\
+&= ((\mathbf{A}_1 + \mathbf{A}_2) + (\mathbf{x}_1 + \mathbf{x}_2) \mathbf{G})^t \mathbf{s} + \mathbf{noise}'\\
+&= (\mathbf{A}_{1+2} + (\mathbf{x}_1 + \mathbf{x}_2) \mathbf{G})^t \mathbf{s} + \mathbf{noise}'\\
+&= C_{\mathbf{x}_1 + \mathbf{x}_2}
+\end{align*}
+$$
+注意我们这里把两边的噪声项$\mathbf{noise}$合并成了一个新的噪声项$\mathbf{noise}'$，为了方便表述。这并不影响正确性。
+
+还有一点很重要的observation是：当我们合并了两个encoding之后，里面的$\mathbf{A}$矩阵也变成了新的构造。如果是相加的话，那么新的$\mathbf{A}$矩阵就是之前的两者相加。
 
 
 
+#### 属性相乘
+
+真正麻烦的在于相乘。假如我们拥有同样的encoding $C_{\mathbf{x}_1}, C_{\mathbf{x}_2}$，我们能否获得$\mathbf{x}_1 \cdot \mathbf{x}_2$的encoding $C_{\mathbf{x}_1 \mathbf{x}_2}$呢？
+
+我们先写出我们想要得到的encoding $C_{\mathbf{x}_1 \mathbf{x}_2}$的构造：
+$$
+C_{\mathbf{x}_1 \mathbf{x}_2} = (\mathbf{A}_{12} + \mathbf{x}_1 \mathbf{x}_2 \mathbf{G})^t \mathbf{s} + \mathbf{noise}
+$$
+乍一看，如果我们就拥有$C_{\mathbf{x}_1}$与$C_{\mathbf{x}_2}$的话，我们似乎没有办法相加或者相乘来得到我们想要的encoding的样子。这似乎有点像GSW FHE的同态乘法计算，如果我们强行把两个encoding相乘的话，最后我们得到的结果会带来很大的噪音和多余项。
+
+【BGG+14】中一个非常重要的发现在于：虽然我们在这里在做类似GSW的同态计算，但是其实我们的要求和FHE完全不同！在FHE中，我们的要求在于隐藏密文中的$\mathbf{x}_i$值，然而在这里ABE的应用当中，属性输入$\mathbf{x}_i$是**可以完全公开的**。这也就是说，解密方可以让加密方额外的提供一份$\mathbf{x}$向量，和密文一起发送过来，然后基于$\mathbf{x}$的值来进行encoding的合并计算。这一点优势是FHE中不存在的。
+
+接下来，我们来看看，如果拥有了明文的$\mathbf{x}$，我们如何计算相乘：
+$$
+\begin{align*}
+C_{\mathbf{x}_1 \mathbf{x}_2} &= C_{\mathbf{x}_1} \cdot \mathbf{G}^{-1}(\mathbf{A}_2) + C_{\mathbf{x}_1} \cdot \mathbf{x}_1\\
+&= (\mathbf{A}_1 + \mathbf{x}_1 \mathbf{G})^t \mathbf{s} \cdot \mathbf{G}_{-1}(\mathbf{A}_2) + (\mathbf{A}_2 + \mathbf{x}_2 \mathbf{G})^t \mathbf{s} \cdot \mathbf{x}_1 + \mathbf{noise}'\\
+&= (\mathbf{A}_1 \mathbf{G}^{-1} (\mathbf{A}_2) - \mathbf{x}_1 \mathbf{A}_2 + \mathbf{x}_1 \mathbf{A}_2 + \mathbf{x}_1 \mathbf{x}_2 \mathbf{G})^t \mathbf{s} + \mathbf{noise}'\\
+&= (\underbrace{\mathbf{A}_1 \mathbf{G}^{-1} (\mathbf{A}_2)}_{\mathbf{A}_{12}} + \mathbf{x}_1 \mathbf{x}_2 \mathbf{G})^t \mathbf{s} + \mathbf{noise}'\\
+\end{align*}
+$$
+这里的$\mathbf{G}^{-1}$就是我们在GSW FHE中提到的binary decomposition（二进制分解）函数，满足了：
+$$
+\mathbf{G} \mathbf{G}^{-1}(\mathbf{A}) = \mathbf{A}
+$$
+因为二进制分解态的$\mathbf{G}^{-1}(\mathbf{A}_2)$与属性$\mathbf{x}_1$都只包含了0或者1这两个值，所以它们和原本的encoding中的噪声项相乘所得到的额外噪声是可以忽略不计的，所以我们把它们通通都合并到了$\mathbf{noise}'$中。
+
+我们在这里再次仔细观察一下新的$\mathbf{A}$矩阵$\mathbf{A}_{12}$的构造：
+$$
+\mathbf{A}_{12} = \mathbf{A}_1 \mathbf{G}^{-1} (\mathbf{A}_2)
+$$
+这一结构与GSW中的同态乘法计算方法**完全一样**！非常的神奇，我们在这里的$\mathbf{A}$矩阵虽然就是一个随机生成的矩阵，并不是一个密文，但是我们进行属性相乘计算的时候，多个$\mathbf{A}$矩阵会按照GSW的模式巧妙的结合在一起。
+
+
+
+#### 基于属性计算任意功能$f$
+
+现在，当我们掌握了加法与乘法之后，我们就可以通过任意组合这两种方法，来计算任何功能$f$了。给定一个想要计算的$f$，我们要做的就是把功能$f$的计算分解为一个个加法与乘法的组合。随后，只要我们拥有所有属性的encoding $\{C_{\mathbf{x}_i}\}$以及属性向量$\mathbf{x}$，我们就可以通过上面描述的方法来计算$f(\mathbf{x})$的encoding了！
+
+
+
+#### 生成对应密钥
+
+当我们可以计算对于属性的encoding的任意加法与乘法之后，我们也就真正实现了开头所描述的表达式：
+$$
+C_{f(x)} = (\mathbf{A}_f + f(x) \cdot \mathbf{G})^t \mathbf{s} + \mathbf{noise}
+$$
+在这里，$f(\cdot)$可以是任何复杂度的函数。我们只需要对应着$f$的复杂度选取模组与噪音的参数大小即可。
+
+由于我们在这里的目标是ABE，所以我们需要生成一个密钥$\mathbf{e}_f$，使得当$f(x) = 0$的时候，拥有这个密钥的解密者可以成功的解开密文。
+
+根据要求，我们来看看当$f(x) = 0$的时候，整个属性的encoding是什么样子的：
+$$
+C_{f(x)} = (\mathbf{A}_f )^t \mathbf{s} + \mathbf{noise}
+$$
+我们发现，和之前AFV11一样，整个encoding中失去了所有对于属性$\mathbf{x}$的信息！唯一剩下的就是矩阵$\mathbf{A}_f$，我们来看看它的构造是怎么样的。
+
+之前我们观察到了在加法与乘法中，$\mathbf{A}$矩阵的变化：
+$$
+\mathbf{A}_{1+2} = \mathbf{A}_1 + \mathbf{A}_2\\
+\mathbf{A}_{12} = \mathbf{A}_1 \mathbf{G}^{-1} (\mathbf{A}_2)
+$$
+观察可以发现，$\mathbf{A}$矩阵一路的变化，和我们evaluate的functionality $f$是直接挂钩的。这个矩阵的值就等于是蕴含了我们对于属性计算所做的这个**functionality**的所有信息。这也就是说，已知了我们要计算的$f$，就算不知道$\mathbf{x}$的值，我们也可以实现通过GSW的Eval规则计算出一个恒定的$\mathbf{A}_f$出来！
+
+$\mathbf{A}$矩阵只依靠与$f$而独立于属性$\mathbf{x}$这一特点，恰巧就是生成ABE密钥的绝佳选择。假如我们想要生成关于某个验证函数$f'$的密钥，那我们只需要根据这个函数的构造计算出对应的$\mathbf{A}_{f'}$来，然后使用我们之前预留好的Trapdoor来生成一个短向量$\mathbf{e}_{f'}$使得：
+$$
+[\mathbf{A} \vert \mathbf{A}_{f'}] \cdot \mathbf{e}_{f'} = \mathbf{u} \text{ mod }q
+$$
+这里的$\mathbf{A}$就是在AFV11中也使用过的一个带有Trapdoor的随机分布矩阵了。因为$\mathbf{A}_{f'}$是纯随机（没有后门的），它存在的作用就是让管理员可以根据MSK（即Trapdoor）生成密钥。
+
+
+
+#### 解开ABE密文
+
+解开密文的方法非常简单，当我们成功的组合出一个类似于$[\mathbf{A} \vert \mathbf{A}_{f'}]^t \mathbf{s}$一样的结构之后，我们就可以把它乘以我们的密钥，就可以得到$\mathbf{u}^t \mathbf{s}$了。接下来，就只需要从密文中移除这个OTP，原文就出来了。
+
+
+
+### BGG+14 ABE的具体结构
+
+当我们了解了【BGG+14】的主要思路之后，为了完整性，我们列出整个ABE的结构。
+
+
+
+#### 公共参数生成
+
+首先，我们需要使用MP12的方法生成一个随机平均分布的矩阵$\mathbf{A}$与对应的Trapdoor $\mathbf{R}$。然后我们根据属性输入向量$\mathbf{x}$的长度$n$，生成$n$个随机分布的矩阵$\{\mathbf{A}_i\}$，注意这里的矩阵是直接随机sample的，没有Trapdoor。最后，我们选择一个随机的$\mathbf{u}$向量，作为SIS问题。
+
+随后，我们公开整个系统的MPK为$\mathbf{A}, \{\mathbf{A}_i\}, \mathbf{u}$，MSK为$\mathbf{R}$。
+
+
+
+#### 密钥生成
+
+拥有MSK的ABE系统管理员可以生成对应任何属性函数$f$的密钥。要做的事情和我们之前表述的一样，基于$\{\mathbf{A}_i\}$使用类似于GSW的方法“同态”计算$f$，最后得到对应的矩阵$\mathbf{A}_f$。
+
+当我们得到对应了$f$的矩阵$\mathbf{A}_f$之后，我们使用Trapdoor $\mathbf{R}$生成密钥$\mathbf{e}_f$使得：
+$$
+[\mathbf{A} \vert \mathbf{A}_{f}] \cdot \mathbf{e}_{f} = \mathbf{u} \text{ mod }q
+$$
+随后，管理员可以把$\mathbf{e}_f$发给Alice，作为她的属性函数密钥。
+
+
+
+#### 属性加密
+
+当Bob想要加密一个密文$\mu$的时候，他可以自己选择一个属性向量$\mathbf{x}$，作为解密方属性验证函数的输入。Bob使用如下的方法把$\mathbf{x}$的每一个bit嵌入在类似于GSW的密文中：
+$$
+C_{\mathbf{x}_i} = (\mathbf{A}_i + \mathbf{x}_i \mathbf{G})^t \mathbf{s} + \mathbf{noise}
+$$
+其中$\mathbf{s}$是Bob自己选择的随机向量（blinding factor），$\mathbf{noise}$也是随机生成的符合噪声分布的噪声向量。
+
+为了使得Alice的密钥在满足属性函数验证的时候可以成功解密，Bob还需要输出一个带有blinding factor的$\mathbf{A}$矩阵：
+$$
+C' = \mathbf{A}^t \mathbf{s} + \mathbf{noise}
+$$
+最后，Bob使用$\mathbf{u}^t \mathbf{s}$作为OTP来加密他真正的密文$\mu$：
+$$
+C = \mathbf{u}^t \mathbf{s} + noise + \mu
+$$
+Bob输出$C, C', \{C_{\mathbf{x}_i}\}, \mathbf{x}$这四项作为密文。
+
+
+
+#### 属性验证解密
+
+当Alice看到Bob的密文$C, C', \{C_{\mathbf{x}_i}\}, \mathbf{x}$这四项的时候，她先使用最后的两项来同态计算$f(\mathbf{x})$：
+$$
+C_{f(\mathbf{x})} = Eval(f, \{C_{\mathbf{x}_i}\}, \mathbf{x})
+$$
+这里的$Eval$函数就和我们之前表述的计算方法一样，把$f$拆分成一个个的加法与乘法运算，然后依次的选择对应的encoding $C_{\mathbf{x}_i}, C_{\mathbf{x}_j}$，根据需求计算$C_{\mathbf{x}_i + \mathbf{x}_j}$或者$C_{\mathbf{x}_i \mathbf{x}_j}$。在计算encoding的乘法的时候，注意还需要用到$\mathbf{x}$的值，不过在这里Bob也给我们了。
+
+当我们组成了$C_{f(\mathbf{x})}$之后，Alice就可以把它与$C'$拼接起来，组成最终形态：
+$$
+[C' \vert C_{f(\mathbf{x})}] = [\mathbf{A} \vert \mathbf{A}_f]^t \mathbf{s} + \mathbf{noise}
+$$
+得到这个形态之后，Alice可以直接乘上她的密钥$\mathbf{e}_f$。根据密钥生成的定义，我们可知：
+$$
+\begin{align*}
+[C' \vert C_{f(\mathbf{x})}] \cdot \mathbf{e}_f &= [\mathbf{A} \vert \mathbf{A}_f]^t \mathbf{s} \cdot \mathbf{e}_f + \mathbf{noise} \cdot \mathbf{e}_f\\
+&= \mathbf{u}^t \mathbf{s} + noise'
+\end{align*}
+$$
+最后，Alice把得到的结果从密文$C$中减去，还原出最终的消息：
+$$
+\mathbf{u}^t \mathbf{s} + noise' - C = \mu \pm noise' \approx \mu
+$$
+这就是【BGG+14】ABE的全貌了。
+
+
+
+### BGG+14 ABE的安全论证
+
+了解完BGG+14的correctness之后，下面来看一下security。
+
+我们在之前的文章中已经做了IBE系统的security proof，这里ABE的安全论证其实也非常相似，一共分为三个阶段：
+
+1. 首先Adversary需要选择他的一个特有的attribute $\mathbf{x}^*$，并且发送给Challenger。Challenger生成ABE的公共参数，把参数发回给Adversary。
+2. 随后，Adversary可以开始进行一系列的Key Queries。在ABE的场景中，Adversary可以向我们发送多个属性函数$f_0, f_1, \dots, f_k$，唯一的要求在于这些函数都不能验证通过Adversary本身的属性$\mathbf{x}^*$。我们需要计算对应的密钥$\mathbf{e}_{f_1}, \dots, \mathbf{e}_{f_k}$并且返还给Adversary。这些输出的密钥都必须要满足BGG+14 ABE的correctness要求。
+3. 最后，Adversary选择两条消息$\mu_0, \mu_1$发送给我们。我们需要随机的选择一个bit $b \in \{0,1\}$，并且根据结果使用属性$\mathbf{x}^*$来加密$\mu_b$并且发送一系列的密文$ct_{\mu_b}$给Adversary。如果Adversary可以辨别密文中究竟是$\mu_0$还是$\mu_1$，那么我们就可以用这个Adversary来破解Lattice中公认困难的问题。
+
+乍一看，整体的流程和之前IBE差不多，但是我们发现这里对于Challenger的要求就更高了。我们需要在不知道MSK（即$\mathbf{A}$矩阵的Trapdoor），以及不知道对应$f'$的密钥$\mathbf{e}_{f'}$的情况下可以成功的回答Key Queries。并且我们需要能够在最后的challenge中嵌入一个格中的难题（SIS/LWE），以便确保Adversary无法破解密文。
+
+接下来，我们来仔细看一看每个部分是如何完成的。
+
+
+
+#### 公共参数生成
+
+作为Challenger，我们在生成公共参数的时候就已经知道了Adversary选择的属性$\mathbf{x}^*$。我们需要做的和之前的ABB10结构大致相同，需要想办法把$\mathbf{x}^*$“嵌入”在公共参数中，使得我们在$f(\mathbf{x}) \ne f(\mathbf{x}^*)$的时候拥有Trapdoor，可以生成任意的ABE密钥。
+
+由于我们不能拥有真正的MSK，所以我们只能选择一个平均随机分布的没有Trapdoor的矩阵$\mathbf{A}$。但是我们对于加密属性用的矩阵$\{\mathbf{A}_i\}$的定义稍作改变：
+$$
+\mathbf{A}_i = [\mathbf{AR}_i - \mathbf{x}_i^* \mathbf{G}]
+$$
+其中$\mathbf{R}_i$是一个随机选择的短矩阵。因为Leftover Hash Lemma，我们知道$\mathbf{A}_i$也是平均随机分布的，这也就是说simulation的公共参数和实际ABE的transcript分布是statistically close的！
+
+
+
+#### Key Queries
+
+首先，我们看一看如何回答Key Queries。当我们想要给一个无法验证$\mathbf{x}^*$的functionality $f'$签发密钥的话，我们可以和正常的密钥签发一样，在$\{\mathbf{A}_i\}$上同态计算$f'$。根据同态的性质，我们最后得到的表达式也会和$\mathbf{A}_i$的构造类似：
+$$
+\mathbf{A}_{f'} = [\mathbf{AR}_{f'} - f'(\mathbf{x}^*)\mathbf{G}]
+$$
+随后，我们需要通过某个Trapdoor，找到一个短向量$\mathbf{e}_{f'}$使得能够满足原本的SIS等式：
+$$
+[\mathbf{A} \vert \mathbf{A}_{f'}] \cdot \mathbf{e}_{f'} = \mathbf{u} \text{ mod }q
+$$
+并且我们要确保只有当$f'(\mathbf{x}^*) \ne 0$的时候，这个Trapdoor才能存在。
+
+这一点很简单，我们重新回顾一下MP12的构造。在MP12中，我们需要一个平均随机分布的矩阵$\mathbf{A}$，和一个高斯分布的短矩阵$\mathbf{R}$。我们设定$\mathbf{H} = f'(\mathbf{x}^*)$，就可以构造如下的矩阵结构：
+$$
+[\mathbf{A} \vert \mathbf{AR - HG}] \cdot \begin{bmatrix}
+\mathbf{R}\\
+-\mathbf{I}
+\end{bmatrix}
+= \mathbf{HG}
+$$
+这和之前介绍的Lattice Trapdoor稍微不同的地方在于多了$\mathbf{H}$这一项，并且相减的顺序变了。但是这些细节并不影响我们找到Trapdoor，唯一的要求在于$\mathbf{H}$需要在$q$模组中可逆。
+
+当我们可以把$[\mathbf{A} \vert \mathbf{A}_{f'}]$转换到$\mathbf{G}$之后，MP12 Trapdoor已经构建完成了。之后我们可以把所有对应的SIS/LWE问题转换到$\mathbf{G}$下轻松解决，我们也就可以生成所需要的$\mathbf{e}_{f'}$了。
+
+
+
+#### Challenge Ciphertext
+
+最后，我们来看一下Challenge Ciphertext是如何构造的。
+
+基于我们当前的$\mathbf{A}_i$矩阵构造，当我们生成基于$\mathbf{x}^*$属性的密文的时候，密文中的$C_i$部分的构造如下：
+$$
+\begin{align*}
+C_i &= (\mathbf{AR}_i + (\mathbf{x}^*_i - \mathbf{x}^*_i) \mathbf{G})^t \mathbf{s} + \mathbf{noise}\\
+&= (\mathbf{AR}_i)^t \mathbf{s} + \mathbf{noise}
+\end{align*}
+$$
+这样一来，$C_i$就失去了所有带有$\mathbf{x}^*$的部分，变成了一个纯LWE的结构。因为Adversary不知道Trapdoor $\mathbf{R}$，也不知道$\mathbf{s}$，所以如果可以通过这个密文成功的构造出$\mathbf{u}^t \mathbf{s}$并且成功解密的话，那么就等于Adversary需要从$C', \{C_i\}$这些LWE sample中提取出$\mathbf{s}$的信息出来。如果Adversary能够有non-negligible advantage可以做到这一点，那么这就代表Adversary可以解开LWE难题了。
+
+Q.E.D.
+
+
+
+### 写在最后
+
+在BGG+14 ABE中，我们发现有两种方式可以“同态”的计算“密文”。
+
+一种方式是对于属性的encoding $C_i$，我们可以在已知$\mathbf{x}$的情况下同态的计算任何functionality $f$，得到$C_f$。
+
+另一种方式是对于ABE中的公共矩阵$\mathbf{A}_i$，就算不知道$\mathbf{x}$，我们可以直接同态结合$\mathbf{A}_i$矩阵在一起，最后构成代表了$f$的功能的$\mathbf{A}_f$。
+
+这两种和GSW神似的同态计算方法，恰恰是GSW FHE中后面被发现的一个巨大的特性：**双重同态性**（**Dual Homomorphism**）。这也就是说，当我们同态计算GSW的时候，不仅密文被同态结合了，其实我们的公共参数也被同态的结合了！
+
+下一期，我们重新回顾一下GSW FHE，并且着重的来看一下双重同态这一特性。
 
