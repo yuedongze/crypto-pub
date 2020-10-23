@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "格密码学进阶06：ABE属性加密（BGG+14）"
+title:  "格密码学进阶07：GSW同态体系的Key Equation"
 ---
 # 格密码学进阶07：GSW同态体系的Key Equation
 
