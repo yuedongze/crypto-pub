@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "iO入门02：基于多线性配对的iO构造：多线性拼图（Multilinear Jigsaw Puzzle）"
+title:  "iO入门03：从MBP开始构建多线性拼图"
 ---
 # iO入门03：从MBP开始构建多线性拼图
 
@@ -87,7 +87,7 @@ $$ P_0, P_1 $$都是对于AND逻辑门的一个正确的MBP程序，唯一不同
 
 1988年的时候，计算机科学家**Joe Kilian**在【**Kil88**】中做了一件很有意思的事情：基于MBP程序的**Two-party MPC**。
 
-当时Kilian遇到的问题很简单，如果Alice和Bob想要一起计算一个电路$$ C(x) $$，其中输入$$ x $$可以被拆分为$x_0 | x_1$（我们假设$$ x_0, x_1 $$分别都是一个bit），其中$$ x_0 $$为Alice的输入，而$$ x_1 $$为Bob的输入。目标就是构造一个协议，可以让Bob在不知道Alice的输入是什么的情况下，计算出$$ C(x) $$的值来。
+当时Kilian遇到的问题很简单，如果Alice和Bob想要一起计算一个电路$$ C(x) $$，其中输入$$ x $$可以被拆分为$$ x_0 \vert x_1 $$（我们假设$$ x_0, x_1 $$分别都是一个bit），其中$$ x_0 $$为Alice的输入，而$$ x_1 $$为Bob的输入。目标就是构造一个协议，可以让Bob在不知道Alice的输入是什么的情况下，计算出$$ C(x) $$的值来。
 
 当时Kilian选择的计算框架，正是来自于Barrington‘s Theorem的MBP框架。在MBP框架中，我们知道对应一个bit的输入就会有若干个对应的矩阵$$ \mathbf{M}_{i,b} $$，所以我们可以想到一个很简单的toy protocol：
 
@@ -278,8 +278,8 @@ $$
 
 $$
 
-\vec{\mathbf{s}} = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$$  \dots  $$}^{m \text{ elements}}\ \mathbf{s}^*)\\
-\vec{\mathbf{t}} = (\underbrace{$$ \dots  $$}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^*)\\
+\vec{\mathbf{s}} = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$  \dots  $}^{m \text{ elements}}\ \mathbf{s}^*)\\
+\vec{\mathbf{t}} = (\underbrace{$ \dots  $}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^*)
 
 $$
 
@@ -513,8 +513,8 @@ $$
 
 $$
 
-\vec{\mathbf{s}} = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$$  \dots  $$}^{m \text{ elements}}\ \mathbf{s}^*), \vec{\mathbf{t}} = (\underbrace{$$ \dots  $$}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^*)\\
-\vec{\mathbf{s}}' = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$$  \dots  $$}^{m \text{ elements}}\ \mathbf{s}^{'*}), \vec{\mathbf{t}}' = (\underbrace{$$ \dots  $$}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^{'*})\\
+\vec{\mathbf{s}} = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$  \dots  $}^{m \text{ elements}}\ \mathbf{s}^*), \vec{\mathbf{t}} = (\underbrace{$ \dots  $}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^*)\\
+\vec{\mathbf{s}}' = (\underbrace{0\dots 0}_{m \text{ elements}}\  \overbrace{$  \dots  $}^{m \text{ elements}}\ \mathbf{s}^{'*}), \vec{\mathbf{t}}' = (\underbrace{$ \dots  $}_{m \text{ elements}}\  \overbrace{0 \dots 0}^{m \text{ elements}}\ \mathbf{t}^{'*})\\
 \langle \mathbf{s}^*, \mathbf{t}^* \rangle = \langle \mathbf{s}^{'*}, \mathbf{t}^{'*} \rangle
 
 $$
