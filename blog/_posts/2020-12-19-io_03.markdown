@@ -556,7 +556,7 @@ $$
 
 $$
 
-C(x) = 0 \iff \mathbf{ZeroTest}(\mathbf{g}_T^{\prod \tilde{\mathbf{D}} - \prod \tilde{\mathbf{D'}}})
+C(x) = 0 \iff \mathbf{ZeroTest}(\mathbf{g}_T^{\tilde{\vec{\mathbf{s}}} \cdot \prod \tilde{\mathbf{D}} \cdot \tilde{\vec{\mathbf{t}}} - \tilde{\vec{\mathbf{s}}}' \cdot \prod \tilde{\mathbf{D'}} \cdot \tilde{\vec{\mathbf{t}}}'})
 
 $$
 
